@@ -113,7 +113,7 @@ function populateBasis(n){
     const opt = document.createElement('option');
     opt.value = i.toString(2).padStart(n, '0');
     // separate each qubit with | >
-    opt.text = opt.value.split('').map(bit => `|${bit}⟩ `).join('');
+    opt.innerHTML = opt.value.split('').map(bit => `|${bit}⟩ `).join(' &#8855; ');
     basisSelect.appendChild(opt);
   }
   // default to |0⟩|0⟩...|0⟩
@@ -639,4 +639,5 @@ function plotBloch(containerId, bloch, q) {
 
   Plotly.newPlot(containerId, [sphere, ...axes, stateVector, arrowHead, labels], layout, { displayModeBar: false });
 }
+
 

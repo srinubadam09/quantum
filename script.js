@@ -95,6 +95,9 @@ btnRun.addEventListener('click', onRun);
 onGateTypeChange();
 
 // ---------- Functions ----------
+blochSpheresDiv.innerHTML = "<div class = grid > <b><h2 style= text-align:'centre'>Qubit</h2></b> <p>The fundemental unit of quantum information, serving as the quantum equvivalent of a classical computer's bit. A qubit can have states 0, 1, 0/1(superposition). </p></div>"
+    
+let firstQubit = false;
 function onSet(){
   nQ = parseInt(numQInput.value);
   if (!(nQ >=1 && nQ <=5)) { alert("Choose n between 1 and 5"); return; }
@@ -105,7 +108,11 @@ function onSet(){
   gateSequence = [];
   renderGateList();
   resultsDiv.innerHTML = "<div class='small'>Initial state set. Add gates and click Run.</div>";
-  blochSpheresDiv.innerHTML = "";
+  if(!firstQubit){
+    blochSpheresDiv.innerHTML = "<div class = grid ><p>Tensor  products (&#8855;) are essential for describing subsystems composed of multiple quantum subsystems, where the state of the total system is given by the tensor product of the states of the individual subsystems </p></div>";
+    firstQubit = true;
+  }
+  
 }
 function populateBasis(n){
   basisSelect.innerHTML = "";
@@ -639,5 +646,4 @@ function plotBloch(containerId, bloch, q) {
 
   Plotly.newPlot(containerId, [sphere, ...axes, stateVector, arrowHead, labels], layout, { displayModeBar: false });
 }
-
 

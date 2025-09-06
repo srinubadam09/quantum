@@ -285,7 +285,6 @@ function renderCircuit(numQubits, circuit) {
   // --- Draw gates ---
   circuit.forEach((layer, step) => {
     // Ensure every qubit has a gate object
-layer = layer.map(g => g || { type: "I", params: [] });
 
     const x = offsetX + step * spacingX;
 

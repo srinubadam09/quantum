@@ -5,8 +5,8 @@
   <title>Quantum Bloch Sphere Visualizer (n ≤ 5)</title>
   <link rel="stylesheet" href="style.css" />
   <!-- math.js for complex numbers, Plotly for 3D plotting -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@11/lib/browser/math.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 </head>
@@ -104,16 +104,24 @@
         <hr />
 
         <button id="btnRun">Run Simulation</button>
-      </div>
+        
+        </div>
     </div>
 
     <hr />
     
   <div id="results"></div>
+  
+  <div id="loading" class="loading-spinner" style="display:none;"></div>
+      
   </div>
+  <div class="right-panel">
+  <div id="quantumCircuit" class ="grid"><h2>circuit diagram</h2></div>
+  
   <div id="blochSpheres" class="grid"></div>
+  </div>
 </div>
-  <script src="script.js"></script>
-
+  <script src="sript2.js">
+  </script>
 </body>
 </html>

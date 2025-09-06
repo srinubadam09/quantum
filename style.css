@@ -39,7 +39,7 @@ button:hover { background:#0004ed; }
   max-height:150px; overflow:auto; border:1px solid #eef2f6;
 }
 /*.grid { margin-top:18px; display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:18px; float:right; width:55%;}*/
-.grid {
+.right-panel {
   flex: 0 0 50%;
   min-width: 300px;
   margin-top: 18px;
@@ -47,6 +47,18 @@ button:hover { background:#0004ed; }
   grid-template-columns: 1fr;
   gap: 18px;
   float: right;
+}
+#quantumCircuit {
+  overflow-x: auto;     /* enable horizontal scrolling */
+  overflow-y: hidden;   /* no vertical scroll needed */
+  white-space: nowrap;  /* prevent wrapping */
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 10px;
+}
+#quantumCircuit svg {
+  display: inline-block; /* allow wide SVGs to scroll */
 }
 
 .result-block { background:#fbfcfd; padding:10px; border-radius:8px; border:1px solid #eef2f6; }
@@ -84,6 +96,21 @@ pre { white-space:pre-wrap; word-break:break-word; }
 }
 
 .bloch-properties {
+  font-family :"Lato", "segoe UI", sans-serif;
   flex: 1; 
   min-width: 200px;                   /* fill rest of row */
+}
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 15px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

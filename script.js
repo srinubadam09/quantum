@@ -1,5 +1,3 @@
-console.log("JS file loaded");
-
 // ---------- Utilities ----------
 const ZERO_C = math.complex(0,0);
 function c(re, im=0) { return math.complex(re, im); }
@@ -80,7 +78,6 @@ const btnRun = document.getElementById('btnRun');
 const resultsDiv = document.getElementById('results');
 const blochSpheresDiv = document.getElementById('blochSpheres');
 
-  const container = document.getElementById("quantumCircuit");
 // ---------- App state ----------
 let nQ = 2;
 let stateVec = []; // array of math.complex
@@ -102,10 +99,6 @@ blochSpheresDiv.innerHTML = "<div class = grid > <b><h2 style= text-align:'centr
     
 let firstQubit = false;
 function onSet(){
-  blochSphereDiv.innerHTML = "";
-  container.innerHTML = "";
-  resultDiv.innerHTML = "";
-  container.innerHTML += "<h2>Circuit Diagram</h2>";
   nQ = parseInt(numQInput.value);
   if (!(nQ >=1 && nQ <=5)) { alert("Choose n between 1 and 5"); return; }
   populateBasis(nQ);
@@ -209,263 +202,11 @@ function onAddGate(){
   renderGateList();
   addGate(gate);
 }
-let circuit =[];
-function addGate(gate, numQubits) {
-  const layer = [];
-  for (let q = 0; q < numQubits; q++) {
-    if (gate.type === "X" || gate.type === "Y" || gate.type === "Z" || gate.type === "H" ||
-        gate.type === "S" || gate.type === "Sdg" || gate.type === "T" || gate.type === "Tdg" ||
-        gate.type === "Rx" || gate.type === "Ry" || gate.type === "Rz" || gate.type === "Phase") {
-      // single-qubit
-      if (q === gate.params[0]) {
-        layer.push(gate);
-      } else {
-        layer.push({ type: "I", params: [q] });
-      }
-    } else if (gate.type === "CNOT" || gate.type === "CZ") {
-      const [c, t] = gate.params;
-      if (q === c || q === t) {
-        layer.push(gate);
-      } else {
-        layer.push({ type: "I", params: [q] });
-      }
-    } else if (gate.type === "SWAP") {
-      const [a, b] = gate.params;
-      if (q === a || q === b) {
-        layer.push(gate);
-      } else {
-        layer.push({ type: "I", params: [q] });
-      }
-    } else if (gate.type === "CCNOT") {
-      const [c1, c2, t] = gate.params;
-      if (q === c1 || q === c2 || q === t) {
-        layer.push(gate);
-      } else {
-        layer.push({ type: "I", params: [q] });
-      }
-    }
-  }
-  circuit.push(layer);
-  renderCircuit(numQubits, circuit);
-}
-function renderCircuit(numQubits, circuit) {
-  const container = document.getElementById("quantumCircuit");
-  container.innerHTML = "<h2>Circuit Diagram</h2>";
-
-  const spacingY = 60, offsetY = 30;
-  const spacingX = 80, offsetX = 60;
-  const width = offsetX + circuit.length * spacingX;
-  const height = numQubits * spacingY + 50;
-
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("width", width);
-  svg.setAttribute("height", height);
-
-  // --- Draw wires ---
-  for (let q = 0; q < numQubits; q++) {
-    const y = q * spacingY + offsetY;
-
-    const line = document.createElementNS(svgNS, "line");
-    line.setAttribute("x1", 20);
-    line.setAttribute("y1", y);
-    line.setAttribute("x2", width - 20);
-    line.setAttribute("y2", y);
-    line.setAttribute("stroke", "black");
-    line.setAttribute("stroke-width", "2");
-    svg.appendChild(line);
-
-    const text = document.createElementNS(svgNS, "text");
-    text.setAttribute("x", 0);
-    text.setAttribute("y", y + 5);
-    text.textContent = `q${q}`;
-    svg.appendChild(text);
-  }
-
-  // --- Draw gates ---
-  circuit.forEach((layer, step) => {
-    // Ensure every qubit has a gate object
-
-    const x = offsetX + step * spacingX;
-
-    layer.forEach((g, q) => {
-      const y = q * spacingY + offsetY;
-
-      // Identity
-      if (g.type === "I") {
-        const rect = document.createElementNS(svgNS, "rect");
-        rect.setAttribute("x", x - 15);
-        rect.setAttribute("y", y - 15);
-        rect.setAttribute("width", 30);
-        rect.setAttribute("height", 30);
-        rect.setAttribute("stroke", "#aaa");
-        rect.setAttribute("fill", "white");
-        svg.appendChild(rect);
-
-        const txt = document.createElementNS(svgNS, "text");
-        txt.setAttribute("x", x);
-        txt.setAttribute("y", y + 5);
-        txt.setAttribute("text-anchor", "middle");
-        txt.textContent = "I";
-        txt.setAttribute("fill", "#aaa");
-        svg.appendChild(txt);
-      }
-
-      // Single-qubit gates
-      else if (["X","Y","Z","H","S","T","Sdg","Tdg","Rx","Ry","Rz","Phase"].includes(g.type)) {
-        const rect = document.createElementNS(svgNS, "rect");
-        rect.setAttribute("x", x - 25);
-        rect.setAttribute("y", y - 25);
-        rect.setAttribute("width", 50);
-        rect.setAttribute("height", 50);
-        rect.setAttribute("fill", "#d1e7dd");
-        rect.setAttribute("stroke", "black");
-        svg.appendChild(rect);
-
-        const label = document.createElementNS(svgNS, "text");
-        label.setAttribute("x", x);
-        label.setAttribute("y", y);
-        label.setAttribute("text-anchor", "middle");
-        label.setAttribute("font-size", "14");
-        label.setAttribute("dominant-baseline", "middle");
-
-        if (["Rx","Ry","Rz","Phase"].includes(g.type)) {
-          const angleDeg = g.angle ? (g.angle * 180 / Math.PI).toFixed(1) : "";
-          label.textContent = `${g.type}${angleDeg ? `(${angleDeg}°)` : ""}`;
-        } else {
-          label.textContent = g.type;
-        }
-
-        svg.appendChild(label);
-      }
-
-      // CNOT / CZ
-      else if (g.type === "CNOT" || g.type === "CZ") {
-        const [c, t] = g.params;
-        if (q === c || q === t) {
-          const y1 = c * spacingY + offsetY;
-          const y2 = t * spacingY + offsetY;
-
-          const line = document.createElementNS(svgNS, "line");
-          line.setAttribute("x1", x);
-          line.setAttribute("x2", x);
-          line.setAttribute("y1", Math.min(y1, y2));
-          line.setAttribute("y2", Math.max(y1, y2));
-          line.setAttribute("stroke", "black");
-          svg.appendChild(line);
-
-          // control
-          const ctrl = document.createElementNS(svgNS, "circle");
-          ctrl.setAttribute("cx", x);
-          ctrl.setAttribute("cy", y1);
-          ctrl.setAttribute("r", 6);
-          ctrl.setAttribute("fill", "black");
-          svg.appendChild(ctrl);
-
-          // target
-          const tgt = document.createElementNS(svgNS, "circle");
-          tgt.setAttribute("cx", x);
-          tgt.setAttribute("cy", y2);
-          tgt.setAttribute("r", 10);
-          tgt.setAttribute("stroke", "black");
-          tgt.setAttribute("fill", "white");
-          svg.appendChild(tgt);
-
-          const horiz = document.createElementNS(svgNS, "line");
-          horiz.setAttribute("x1", x - 10);
-          horiz.setAttribute("x2", x + 10);
-          horiz.setAttribute("y1", y2);
-          horiz.setAttribute("y2", y2);
-          horiz.setAttribute("stroke", "black");
-          svg.appendChild(horiz);
-        }
-      }
-
-      // SWAP
-      else if (g.type === "SWAP") {
-        const [a, b] = g.params;
-        if (q === a || q === b) {
-          const ya = a * spacingY + offsetY;
-          const yb = b * spacingY + offsetY;
-
-          const lineV = document.createElementNS(svgNS, "line");
-          lineV.setAttribute("x1", x);
-          lineV.setAttribute("y1", ya);
-          lineV.setAttribute("x2", x);
-          lineV.setAttribute("y2", yb);
-          lineV.setAttribute("stroke", "black");
-          svg.appendChild(lineV);
-
-          [ya, yb].forEach(yy => {
-            const l1 = document.createElementNS(svgNS, "line");
-            l1.setAttribute("x1", x - 10);
-            l1.setAttribute("y1", yy - 10);
-            l1.setAttribute("x2", x + 10);
-            l1.setAttribute("y2", yy + 10);
-            l1.setAttribute("stroke", "black");
-            svg.appendChild(l1);
-
-            const l2 = document.createElementNS(svgNS, "line");
-            l2.setAttribute("x1", x - 10);
-            l2.setAttribute("y1", yy + 10);
-            l2.setAttribute("x2", x + 10);
-            l2.setAttribute("y2", yy - 10);
-            l2.setAttribute("stroke", "black");
-            svg.appendChild(l2);
-          });
-        }
-      }
-
-      // Toffoli
-      else if (g.type === "CCNOT") {
-        const [c1, c2, t] = g.params;
-        if (q === c1 || q === c2 || q === t) {
-          const ys = [c1, c2, t].map(qi => qi * spacingY + offsetY);
-
-          const line = document.createElementNS(svgNS, "line");
-          line.setAttribute("x1", x);
-          line.setAttribute("x2", x);
-          line.setAttribute("y1", Math.min(...ys));
-          line.setAttribute("y2", Math.max(...ys));
-          line.setAttribute("stroke", "black");
-          svg.appendChild(line);
-
-          [c1, c2].forEach(ctrlQ => {
-            const cy = ctrlQ * spacingY + offsetY;
-            const circle = document.createElementNS(svgNS, "circle");
-            circle.setAttribute("cx", x);
-            circle.setAttribute("cy", cy);
-            circle.setAttribute("r", 6);
-            circle.setAttribute("fill", "black");
-            svg.appendChild(circle);
-          });
-
-          const cyT = t * spacingY + offsetY;
-          const tgt = document.createElementNS(svgNS, "circle");
-          tgt.setAttribute("cx", x);
-          tgt.setAttribute("cy", cyT);
-          tgt.setAttribute("r", 10);
-          tgt.setAttribute("stroke", "black");
-          tgt.setAttribute("fill", "white");
-          svg.appendChild(tgt);
-
-          const horiz = document.createElementNS(svgNS, "line");
-          horiz.setAttribute("x1", x - 10);
-          horiz.setAttribute("x2", x + 10);
-          horiz.setAttribute("y1", cyT);
-          horiz.setAttribute("y2", cyT);
-          horiz.setAttribute("stroke", "black");
-          svg.appendChild(horiz);
-        }
-      }
-    });
-  });
-
-  container.appendChild(svg);
+function addGate(gate) {
+  renderCircuit(nQ, gateSequence);
 }
 
 //circuit printing
-/*
 function renderCircuit(numQubits, gates) {
   const container = document.getElementById("quantumCircuit");
   container.innerHTML = "";
@@ -873,7 +614,7 @@ function densityToBloch(red){
   const z = cre(red[0][0]) - cre(red[1][1]);
   return {x:x, y:y, z:z};
 }
-*/
+
 // ---------- Run simulation ----------
 function onRun(){
   initState(nQ);
@@ -1140,9 +881,6 @@ function plotBloch(containerId, bloch, q) {
 
   Plotly.newPlot(containerId, [sphere, ...axes, stateVector, arrowHead, labels], layout, { displayModeBar: false });
 }
-
-
-
 
 
 

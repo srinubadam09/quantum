@@ -1,3 +1,5 @@
+console.log("JS file loaded");
+
 // ---------- Utilities ----------
 const ZERO_C = math.complex(0,0);
 function c(re, im=0) { return math.complex(re, im); }
@@ -881,5 +883,6 @@ function plotBloch(containerId, bloch, q) {
 
   Plotly.newPlot(containerId, [sphere, ...axes, stateVector, arrowHead, labels], layout, { displayModeBar: false });
 }
+
 
 

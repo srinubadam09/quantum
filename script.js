@@ -241,7 +241,7 @@ function renderCircuit(numQubits, gates) {
     const text = document.createElementNS(svgNS, "text");
     text.setAttribute("x", 0);
     text.setAttribute("y", 35 + q * qheight);
-    text.textContent = q${q};
+    text.textContent = `q${q}`;
     svg.appendChild(text);
   }
   for (let q = 0; q < numQubits; q++) {
@@ -259,7 +259,7 @@ function renderCircuit(numQubits, gates) {
     const text = document.createElementNS(svgNS, "text");
     text.setAttribute("x", 0);
     text.setAttribute("y", y + 5);
-    text.textContent = q${q};
+    text.textContent = `q${q}`;
     svg.appendChild(text);
   }
   const startY = numQubits * qheight + 50;
@@ -279,7 +279,7 @@ function renderCircuit(numQubits, gates) {
     const text = document.createElementNS(svgNS, "text");
     text.setAttribute("x", 0);
     text.setAttribute("y", y + 5);
-    text.textContent = cr[${c}];
+    text.textContent = `cr[${c}]`;
     svg.appendChild(text);
   }
 
@@ -311,7 +311,7 @@ function renderCircuit(numQubits, gates) {
       // Show gate + angle if rotation
       if (["Rx", "Ry", "Rz", "Phase"].includes(g.type)) {
         const angleDeg = g.angle ? (g.angle * 180 / Math.PI).toFixed(1) : "";
-        label.textContent = `${g.type}${angleDeg ? (${angleDeg}°) : ""}`;
+        label.textContent = `${g.type}${angleDeg ? `(${angleDeg}°)` : ""}`;
         
       } else {
         label.textContent = g.type;
@@ -617,13 +617,13 @@ function renderGateList(){
 
     const left = document.createElement('div');
     left.className = 'gate-left';
-    let desc = ${i+1}. ${g.type};
+    let desc = `${i+1}. ${g.type}`;
     if (g.params?.length){
       desc += ` (${g.params.join(',')})`;
     }
     if (g.angle !== undefined){
       const deg = (g.angle*180/Math.PI).toFixed(2);
-      desc += , ${deg}°;
+      desc += `, ${deg}°`;
     }
     left.textContent = desc;
 
@@ -825,7 +825,7 @@ function onRun(){
        // Example: measure qubit 0
       const { outcome, newPsi } = measureQubit(psi, nQ, target);
       psi = newPsi;   // update state vector
-      console.log(Measurement outcome for qubit ${target}:, outcome);
+      console.log(`Measurement outcome for qubit ${target}:`, outcome);
     }
     else if (g.type === 'Rx'){
       psi = applySingleQubitGate(psi, nQ, g.params[0], Rx(g.angle));
@@ -866,30 +866,30 @@ function displayResults(psi, rho, reducedList){
   for (let i=0;i<dim;i++){
     const mag = Math.hypot(cre(psi[i]), cim(psi[i]));
     if (mag > 1e-9){
-      const amp = ${cre(psi[i]).toFixed(3)}${cim(psi[i])>=0?'+':'-'}${Math.abs(cim(psi[i])).toFixed(3)}j;
-      s += <div>\\(|${i.toString(3).padStart(nQ,'0')}> : ${amp}\\)</div>;
+      const amp = `${cre(psi[i]).toFixed(3)}${cim(psi[i])>=0?'+':'-'}${Math.abs(cim(psi[i])).toFixed(3)}j`;
+      s += `<div>\\(|${i.toString(3).padStart(nQ,'0')}> : ${amp}\\)</div>`;
     }
   }
   s += "</div>";
 
   s += "<div class='result-block'><h3>Full density matrix ρ</h3>";
   if(rho.length <= 3&& rho[0].length <=3) {
-    s += <div style ="overflow:auto; max-width:100%; max-height: 400px;"><b>$$${formatComplexMatrix(rho)}$$</b><div>;
+    s += `<div style ="overflow:auto; max-width:100%; max-height: 400px;"><b>$$${formatComplexMatrix(rho)}$$</b><div>`;
   }
   else {
-    s += <div style ="overflow:auto; max-width:100%; max-height: 400px;"><b>${formatMatrixHTML(rho)}</b></div>;
+    s += `<div style ="overflow:auto; max-width:100%; max-height: 400px;"><b>${formatMatrixHTML(rho)}</b></div>`;
   }
   s += "</div>";
 
   for (let q=0;q<reducedList.length;q++){
     s += "<div class='result-block'>";
-    s += <h3>Reduced ρ (qubit ${q})</h3>;
+    s += `<h3>Reduced ρ (qubit ${q})</h3>`;
     const mat = reducedList[q];
     if(mat.length <= 3 && mat[0].length <= 3) {
-      s += <div style ="overflow:auto; max-width:100%; max-height: 400px;">$$${formatComplexMatrix(mat)}$$</div>;
+      s += `<div style ="overflow:auto; max-width:100%; max-height: 400px;">$$${formatComplexMatrix(mat)}$$</div>`;
     }
     else{
-      s += <div style ="overflow:auto; max-width:100%; max-height: 400px;">${formatMatrixHTML(mat)}</div>;
+      s += `<div style ="overflow:auto; max-width:100%; max-height: 400px;">${formatMatrixHTML(mat)}</div>`;
     }
     s += "</div>";
   }
@@ -904,21 +904,21 @@ function formatComplexMatrix(mat){
   let latex = "\\begin{bmatrix}\n";
   latex += mat.map(
     row => row.map(
-      c => ${cre(c).toFixed(3)}${cim(c) >= 0 ? '+' : ''}${cim(c).toFixed(3)}i
+      c => `${cre(c).toFixed(3)}${cim(c) >= 0 ? '+' : ''}${cim(c).toFixed(3)}i`
     ).join(" & ")
   ).join(" \\\\\n");
   latex += "\n\\end{bmatrix}";
   return latex;  
 }
 function formatMatrixHTML(mat, threshold = 1e-6) {
-  return <table border="1" style="border-collapse: collapse; font-family: monospace;"> +
+  return `<table border="1" style="border-collapse: collapse; font-family: monospace;">` +
     mat.map(row => 
-      <tr> + row.map(c => {
-        let val = (Math.hypot(cre(c), cim(c)) < threshold)? "0":${cre(c).toFixed(2)}${cim(c)>=0?'+':''}${cim(c).toFixed(2)}i;
-         return <td style = "text-align : center; width : 80px; padding : 2px;">${val}</td>;
-        }).join('') + </tr>
+      `<tr>` + row.map(c => {
+        let val = (Math.hypot(cre(c), cim(c)) < threshold)? "0":`${cre(c).toFixed(2)}${cim(c)>=0?'+':''}${cim(c).toFixed(2)}i`;
+         return `<td style = "text-align : center; width : 80px; padding : 2px;">${val}</td>`;
+        }).join('') + `</tr>`
     ).join('') +
-  </table>;
+  `</table>`;
 }
 function qubitEntropy(x, y, z) {
   // Length of the Bloch vector
@@ -972,7 +972,7 @@ function drawAllBloch(reducedList) {
     blochSpheresDiv.appendChild(wrapper);
 
     // Draw the Bloch sphere
-    const r = Math.sqrt(bloc.x*2 + bloc.y2 + bloc.z*2);
+    const r = Math.sqrt(bloc.x**2 + bloc.y**2 + bloc.z**2);
     if(r< 1e-6){
       plotBloch(block.id, {x:0,y:0,z:0},q,true);
     }
@@ -1073,7 +1073,7 @@ function plotBloch(containerId, bloch, q) {
 
   }
   const layout = {
-    title: Qubit ${q},
+    title: `Qubit ${q}`,
     margin: { l: 0, r: 0, b: 0, t: 30 },
     scene: {
       aspectmode: 'cube',
@@ -1085,3 +1085,6 @@ function plotBloch(containerId, bloch, q) {
   };
   Plotly.newPlot(containerId,traces,layout,{displayModeBar : false});
 }
+  
+
+

@@ -77,7 +77,8 @@ const btnRun = document.getElementById('btnRun');
 
 const resultsDiv = document.getElementById('results');
 const blochSpheresDiv = document.getElementById('blochSpheres');
-
+const container = document.getElementById("quantumCircuit");
+  
 // ---------- App state ----------
 let nQ = 2;
 let stateVec = []; // array of math.complex
@@ -112,7 +113,9 @@ function onSet(){
     blochSpheresDiv.innerHTML = "<div class = grid ><p>Tensor  products (&#8855;) are essential for describing subsystems composed of multiple quantum subsystems, where the state of the total system is given by the tensor product of the states of the individual subsystems </p></div>";
     firstQubit = true;
   }
-  
+  blochSpheresDiv.innerHTML = "";
+  resultsDiv.innerHTLML = "";
+  container.innerHTML = "<h2>Circuit Diagram </h2>";
 }
 function populateBasis(n){
   basisSelect.innerHTML = "";
@@ -154,7 +157,7 @@ function onGateTypeChange(){
   angleDiv.classList.add('hidden');
 
   // show relevant
-  if (['X','Y','Z','H','S','Sdg','T','Tdg','Rx','Ry','Rz','Phase'].includes(type)){
+  if (['X','Y','Z','H','S','Sdg','T','Tdg','Rx','Ry','Rz','Phase','MEASURE'].includes(type)){
     singleTargetDiv.classList.remove('hidden');
   }
   if (['Rx','Ry','Rz','Phase'].includes(type)){
@@ -176,7 +179,7 @@ function onAddGate(){
   const type = gateType.value;
   let gate = { type, params: [] };
 
-  if (['X','Y','Z','H','S','Sdg','T','Tdg','Rx','Ry','Rz','Phase'].includes(type)){
+  if (['X','Y','Z','H','S','Sdg','T','Tdg','Rx','Ry','Rz','Phase','MEASURE'].includes(type)){
     const t = parseInt(targetQ.value);
     gate.params = [t];
     if (['Rx','Ry','Rz','Phase'].includes(type)){
@@ -208,12 +211,15 @@ function addGate(gate) {
 
 //circuit printing
 function renderCircuit(numQubits, gates) {
-  const container = document.getElementById("quantumCircuit");
+  
+  const numClassical = numQubits;
   container.innerHTML = "";
   container.innerHTML += "<h2>circuit Diagram </h2>";
 
   const width = 120 * (gates.length + 1);
-  const height = 60 * numQubits;
+  const qheight = 60 ;
+  const cHeight = 40;
+  const height = numQubits * qheight + numClassical * cHeight + 60;
 
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
@@ -224,9 +230,9 @@ function renderCircuit(numQubits, gates) {
   for (let q = 0; q < numQubits; q++) {
     const line = document.createElementNS(svgNS, "line");
     line.setAttribute("x1", 20);
-    line.setAttribute("y1", 30 + q * 60);
+    line.setAttribute("y1", 30 + q * qheight);
     line.setAttribute("x2", width - 20);
-    line.setAttribute("y2", 30 + q * 60);
+    line.setAttribute("y2", 30 + q * qheight);
     line.setAttribute("stroke", "black");
     line.setAttribute("stroke-width", "2");
     svg.appendChild(line);
@@ -234,10 +240,49 @@ function renderCircuit(numQubits, gates) {
     // Label
     const text = document.createElementNS(svgNS, "text");
     text.setAttribute("x", 0);
-    text.setAttribute("y", 35 + q * 60);
-    text.textContent = `q${q}`;
+    text.setAttribute("y", 35 + q * qheight);
+    text.textContent = q${q};
     svg.appendChild(text);
   }
+  for (let q = 0; q < numQubits; q++) {
+    const y = 30 + q * qheight;
+    const line = document.createElementNS(svgNS, "line");
+    line.setAttribute("x1", 20);
+    line.setAttribute("y1", y);
+    line.setAttribute("x2", width - 20);
+    line.setAttribute("y2", y);
+    line.setAttribute("stroke", "black");
+    line.setAttribute("stroke-width", "2");
+    svg.appendChild(line);
+
+    // Quantum labels
+    const text = document.createElementNS(svgNS, "text");
+    text.setAttribute("x", 0);
+    text.setAttribute("y", y + 5);
+    text.textContent = q${q};
+    svg.appendChild(text);
+  }
+  const startY = numQubits * qheight + 50;
+  // --- Draw classical registers ---
+  for (let c = 0; c < numClassical; c++) {
+    const y = startY + c * cHeight;
+    const line = document.createElementNS(svgNS, "line");
+    line.setAttribute("x1", 20);
+    line.setAttribute("y1", y);
+    line.setAttribute("x2", width - 20);
+    line.setAttribute("y2", y);
+    line.setAttribute("stroke", "blue");
+    line.setAttribute("stroke-width", "2");
+    svg.appendChild(line);
+
+    // Classical labels
+    const text = document.createElementNS(svgNS, "text");
+    text.setAttribute("x", 0);
+    text.setAttribute("y", y + 5);
+    text.textContent = cr[${c}];
+    svg.appendChild(text);
+  }
+
 
   // --- Draw gates ---
   gates.forEach((g, i) => {
@@ -245,7 +290,7 @@ function renderCircuit(numQubits, gates) {
 
     // 🎯 Handle single-qubit standard + rotation gates
     if (["X", "Y", "Z", "H", "S", "T", "Sdg", "Tdg", "Rx", "Ry", "Rz", "Phase"].includes(g.type)) {
-      const y = 30 + g.params[0] * 60;
+      const y = 30 + g.params[0] * qheight;
 
       const rect = document.createElementNS(svgNS, "rect");
       rect.setAttribute("x", x - 25);
@@ -266,7 +311,7 @@ function renderCircuit(numQubits, gates) {
       // Show gate + angle if rotation
       if (["Rx", "Ry", "Rz", "Phase"].includes(g.type)) {
         const angleDeg = g.angle ? (g.angle * 180 / Math.PI).toFixed(1) : "";
-        label.textContent = `${g.type}${angleDeg ? `(${angleDeg}°)` : ""}`;
+        label.textContent = `${g.type}${angleDeg ? (${angleDeg}°) : ""}`;
         
       } else {
         label.textContent = g.type;
@@ -279,8 +324,8 @@ function renderCircuit(numQubits, gates) {
     if (g.type === "CNOT") {
       const c = g.params[0];
       const t = g.params[1];
-      const yc = 30 + c * 60;
-      const yt = 30 + t * 60;
+      const yc = 30 + c * qheight;
+      const yt = 30 + t * qheight;
 
       const dot = document.createElementNS(svgNS, "circle");
       dot.setAttribute("cx", x);
@@ -324,13 +369,47 @@ function renderCircuit(numQubits, gates) {
       lineV2.setAttribute("stroke-width", "2");
       svg.appendChild(lineV2);
     }
+    //cz
+    // CZ
+if (g.type === "CZ") {
+  const c = g.params[0];
+  const t = g.params[1];
+  const yc = 30 + c * qheight;
+  const yt = 30 + t * qheight;
+
+  // Control dot
+  const dotC = document.createElementNS(svgNS, "circle");
+  dotC.setAttribute("cx", x);
+  dotC.setAttribute("cy", yc);
+  dotC.setAttribute("r", 6);
+  dotC.setAttribute("fill", "black");
+  svg.appendChild(dotC);
+
+  // Target dot
+  const dotT = document.createElementNS(svgNS, "circle");
+  dotT.setAttribute("cx", x);
+  dotT.setAttribute("cy", yt);
+  dotT.setAttribute("r", 6);
+  dotT.setAttribute("fill", "black");
+  svg.appendChild(dotT);
+
+  // Vertical line connecting them
+  const lineV = document.createElementNS(svgNS, "line");
+  lineV.setAttribute("x1", x);
+  lineV.setAttribute("y1", yc);
+  lineV.setAttribute("x2", x);
+  lineV.setAttribute("y2", yt);
+  lineV.setAttribute("stroke", "black");
+  lineV.setAttribute("stroke-width", "2");
+  svg.appendChild(lineV);
+}
 
     // SWAP
     if (g.type === "SWAP") {
       const a = g.params[0];
       const b = g.params[1];
-      const ya = 30 + a * 60;
-      const yb = 30 + b * 60;
+      const ya = 30 + a * qheight;
+      const yb = 30 + b * qheight;
 
       const line1 = document.createElementNS(svgNS, "line");
       line1.setAttribute("x1", x - 10);
@@ -383,9 +462,9 @@ function renderCircuit(numQubits, gates) {
       const c1 = g.params[0];
       const c2 = g.params[1];
       const t = g.params[2];
-      const y1 = 30 + c1 * 60;
-      const y2 = 30 + c2 * 60;
-      const yt = 30 + t * 60;
+      const y1 = 30 + c1 * qheight;
+      const y2 = 30 + c2 * qheight;
+      const yt = 30 + t * qheight;
 
       [y1, y2].forEach(yc => {
         const dot = document.createElementNS(svgNS, "circle");
@@ -431,7 +510,77 @@ function renderCircuit(numQubits, gates) {
       lineV2.setAttribute("stroke-width", "2");
       svg.appendChild(lineV2);
     }
+    if (g.type === "MEASURE") {
+      const q = g.params[0];
+      const c = g.params[0];
+      const yq = 30 + q * qheight;
+      const yc = startY + c * cHeight;
+
+      const rect = document.createElementNS(svgNS, "rect");
+      rect.setAttribute("x", x - 20);
+      rect.setAttribute("y", yq - 20);
+      rect.setAttribute("width", 40);
+      rect.setAttribute("height", 40);
+      rect.setAttribute("fill", "#fff3cd");
+      rect.setAttribute("stroke", "black");
+      svg.appendChild(rect);
+
+      const label = document.createElementNS(svgNS, "text");
+      label.setAttribute("x", x);
+      label.setAttribute("y", yq);
+      label.setAttribute("text-anchor", "middle");
+      label.setAttribute("dominant-baseline", "middle");
+      label.setAttribute("font-size", "12");
+      label.textContent = "M";
+      svg.appendChild(label);
+
+      const line = document.createElementNS(svgNS, "line");
+      line.setAttribute("x1", x);
+      line.setAttribute("y1", yq +20);
+      line.setAttribute("x2", x);
+      line.setAttribute("y2", yc);
+      line.setAttribute("stroke", "blue");
+      line.setAttribute("stroke-dasharray", "4");
+      svg.appendChild(line);
+    }
+          // --- Draw identity gates for qubits not affected by this gate ---
+    for (let q = 0; q < numQubits; q++) {
+      let isTarget = false;
+
+      if (["X","Y","Z","H","S","T","Sdg","Tdg","Rx","Ry","Rz","Phase"].includes(g.type)) {
+        isTarget = (q === g.params[0]);
+      } else if (["CNOT", "CZ"].includes(g.type)) {
+        isTarget = (q === g.params[0] || q === g.params[1]);
+      } else if (g.type === "CCNOT") {
+        isTarget = (q === g.params[0] || q === g.params[1] || q === g.params[2]);
+      } else if (g.type === "MEASURE") {
+        isTarget = (q === g.params[0]);
+      }
+
+      if (!isTarget) {
+        const y = 30 + q * qheight;
+        const rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", x - 15);
+        rect.setAttribute("y", y - 15);
+        rect.setAttribute("width", 30);
+        rect.setAttribute("height", 30);
+        rect.setAttribute("fill", "#f0f0f0");  // gray/light color for identity
+        rect.setAttribute("stroke", "black");
+        svg.appendChild(rect);
+
+        const label = document.createElementNS(svgNS, "text");
+        label.setAttribute("x", x);
+        label.setAttribute("y", y);
+        label.setAttribute("text-anchor", "middle");
+        label.setAttribute("dominant-baseline", "middle");
+        label.setAttribute("font-size", "12");
+        label.textContent = "I";
+        svg.appendChild(label);
+      }
+    }
   });
+
+
 
   container.appendChild(svg);
 }
@@ -440,11 +589,20 @@ function renderCircuit(numQubits, gates) {
 function onUndo(){
   gateSequence.pop();
   renderGateList();
+  container.innerHTML = "<h2> Circuit Diagram </h2>";
+  blochSpheresDiv.innerHTML = "";
+  resultsDiv.innerHTML = "";
+  renderCircuit(nQ,gateSequence);
 }
 
 function onClearGates(){
   gateSequence = [];
   renderGateList();
+  
+  container.innerHTML = "<h2> Circuit Diagram </h2>";
+  blochSpheresDiv.innerHTML = "";
+  resultsDiv.innerHTML = "";
+  
 }
 
 function renderGateList(){
@@ -459,13 +617,13 @@ function renderGateList(){
 
     const left = document.createElement('div');
     left.className = 'gate-left';
-    let desc = `${i+1}. ${g.type}`;
+    let desc = ${i+1}. ${g.type};
     if (g.params?.length){
       desc += ` (${g.params.join(',')})`;
     }
     if (g.angle !== undefined){
       const deg = (g.angle*180/Math.PI).toFixed(2);
-      desc += `, ${deg}°`;
+      desc += , ${deg}°;
     }
     left.textContent = desc;
 
@@ -577,7 +735,7 @@ function applyCCNOT(psi, n, c1, c2, t){
   }
   return out;
 }
-
+// ---------- Density matrix & Bloch sphere ----------
 function outerProduct(psi){
   const dim = psi.length;
   const rho = Array(dim).fill(0).map(()=>Array(dim).fill(0).map(()=>c(0,0)));
@@ -604,7 +762,12 @@ function partialTrace(rho, n, target){
       }
     }
   }
-  return red;
+  const trace = math.add(red[0][0], red[1][1]);
+  return [
+    [math.divide(red[0][0], trace), math.divide(red[0][1], trace)],
+    [math.divide(red[1][0], trace), math.divide(red[1][1], trace)]
+  ];
+
 }
 
 function densityToBloch(red){
@@ -613,6 +776,40 @@ function densityToBloch(red){
   const y = -2 * cim(rho01);
   const z = cre(red[0][0]) - cre(red[1][1]);
   return {x:x, y:y, z:z};
+}
+function measureQubit(psi, n, target) {
+    // psi: state vector array of complex numbers (c(re, im))
+    // n: number of qubits
+    // target: qubit to measure (0 = leftmost in binary)
+
+    const dim = psi.length;
+    let p0 = 0;
+
+    // Compute probability qubit is 0
+    for (let i = 0; i < dim; i++) {
+        const bin = i.toString(2).padStart(n, '0');
+        if (bin[target] === '0') {
+            p0 += math.abs(psi[i]) ** 2;
+        }
+    }
+
+    // Random collapse
+    const r = Math.random();
+    const outcome = (r < p0) ? 0 : 1;
+
+    // Collapse state
+    const newPsi = psi.map((amp, i) => {
+        const bin = i.toString(2).padStart(n, '0');
+        return (parseInt(bin[target]) === outcome) ? amp : c(0,0);
+    });
+
+    // Normalize
+    const norm = Math.sqrt(newPsi.reduce((sum, amp) => sum + math.abs(amp)**2, 0));
+    for (let i = 0; i < dim; i++) {
+        newPsi[i] = math.divide(newPsi[i], norm);
+    }
+
+    return { outcome, newPsi };
 }
 
 // ---------- Run simulation ----------
@@ -623,7 +820,14 @@ function onRun(){
   for (const g of gateSequence){
     if (g.type in GATES){
       psi = applySingleQubitGate(psi, nQ, g.params[0], GATES[g.type]);
-    } else if (g.type === 'Rx'){
+    }else if(g.type === 'MEASURE'){
+      const target = g.params[0];
+       // Example: measure qubit 0
+      const { outcome, newPsi } = measureQubit(psi, nQ, target);
+      psi = newPsi;   // update state vector
+      console.log(Measurement outcome for qubit ${target}:, outcome);
+    }
+    else if (g.type === 'Rx'){
       psi = applySingleQubitGate(psi, nQ, g.params[0], Rx(g.angle));
     } else if (g.type === 'Ry'){
       psi = applySingleQubitGate(psi, nQ, g.params[0], Ry(g.angle));
@@ -662,30 +866,30 @@ function displayResults(psi, rho, reducedList){
   for (let i=0;i<dim;i++){
     const mag = Math.hypot(cre(psi[i]), cim(psi[i]));
     if (mag > 1e-9){
-      const amp = `${cre(psi[i]).toFixed(3)}${cim(psi[i])>=0?'+':'-'}${Math.abs(cim(psi[i])).toFixed(3)}j`;
-      s += `<div>\\(|${i.toString(3).padStart(nQ,'0')}> : ${amp}\\)</div>`;
+      const amp = ${cre(psi[i]).toFixed(3)}${cim(psi[i])>=0?'+':'-'}${Math.abs(cim(psi[i])).toFixed(3)}j;
+      s += <div>\\(|${i.toString(3).padStart(nQ,'0')}> : ${amp}\\)</div>;
     }
   }
   s += "</div>";
 
   s += "<div class='result-block'><h3>Full density matrix ρ</h3>";
   if(rho.length <= 3&& rho[0].length <=3) {
-    s += `<div style ="overflow:auto; max-width:100%; max-height: 400px;"><b>$$${formatComplexMatrix(rho)}$$</b><div>`;
+    s += <div style ="overflow:auto; max-width:100%; max-height: 400px;"><b>$$${formatComplexMatrix(rho)}$$</b><div>;
   }
   else {
-    s += `<div style ="overflow:auto; max-width:100%; max-height: 400px;"><b>${formatMatrixHTML(rho)}</b></div>`;
+    s += <div style ="overflow:auto; max-width:100%; max-height: 400px;"><b>${formatMatrixHTML(rho)}</b></div>;
   }
   s += "</div>";
 
   for (let q=0;q<reducedList.length;q++){
     s += "<div class='result-block'>";
-    s += `<h3>Reduced ρ (qubit ${q})</h3>`;
+    s += <h3>Reduced ρ (qubit ${q})</h3>;
     const mat = reducedList[q];
     if(mat.length <= 3 && mat[0].length <= 3) {
-      s += `<div style ="overflow:auto; max-width:100%; max-height: 400px;">$$${formatComplexMatrix(mat)}$$</div>`;
+      s += <div style ="overflow:auto; max-width:100%; max-height: 400px;">$$${formatComplexMatrix(mat)}$$</div>;
     }
     else{
-      s += `<div style ="overflow:auto; max-width:100%; max-height: 400px;">${formatMatrixHTML(mat)}</div>`;
+      s += <div style ="overflow:auto; max-width:100%; max-height: 400px;">${formatMatrixHTML(mat)}</div>;
     }
     s += "</div>";
   }
@@ -700,33 +904,22 @@ function formatComplexMatrix(mat){
   let latex = "\\begin{bmatrix}\n";
   latex += mat.map(
     row => row.map(
-      c => `${cre(c).toFixed(3)}${cim(c) >= 0 ? '+' : ''}${cim(c).toFixed(3)}i`
+      c => ${cre(c).toFixed(3)}${cim(c) >= 0 ? '+' : ''}${cim(c).toFixed(3)}i
     ).join(" & ")
   ).join(" \\\\\n");
   latex += "\n\\end{bmatrix}";
   return latex;  
 }
 function formatMatrixHTML(mat, threshold = 1e-6) {
-  return `<table border="1" style="border-collapse: collapse; font-family: monospace;">` +
+  return <table border="1" style="border-collapse: collapse; font-family: monospace;"> +
     mat.map(row => 
-      `<tr>` + row.map(c => {
-        let val = (Math.hypot(cre(c), cim(c)) < threshold)? "0":`${cre(c).toFixed(2)}${cim(c)>=0?'+':''}${cim(c).toFixed(2)}i`;
-         return `<td style = "text-align : center; width : 80px; padding : 2px;">${val}</td>`;
-        }).join('') + `</tr>`
+      <tr> + row.map(c => {
+        let val = (Math.hypot(cre(c), cim(c)) < threshold)? "0":${cre(c).toFixed(2)}${cim(c)>=0?'+':''}${cim(c).toFixed(2)}i;
+         return <td style = "text-align : center; width : 80px; padding : 2px;">${val}</td>;
+        }).join('') + </tr>
     ).join('') +
-  `</table>`;
+  </table>;
 }
-/*function drawAllBloch(reducedList){
-  blochSpheresDiv.innerHTML = '';
-  for (let q=0; q<reducedList.length; q++){
-    const block = document.createElement('div');
-    block.id = 'bloch_'+q; 
-    block.style.width = '350px'; block.style.height = '350px';
-    blochSpheresDiv.appendChild(block);
-    const bloch = densityToBloch(reducedList[q]);
-    plotBloch(block.id, bloch, q);
-  }
-}*/
 function qubitEntropy(x, y, z) {
   // Length of the Bloch vector
   const r = Math.sqrt(x * x + y * y + z * z);
@@ -765,14 +958,13 @@ function drawAllBloch(reducedList) {
     const x = bloc.x.toFixed(6);
     const y = bloc.y.toFixed(6);
     const z = bloc.z.toFixed(6);
-    const e = qubitEntropy(x,y,z);
+    const e = qubitEntropy(x,y,z).toFixed(3);
     props.innerHTML = `
       <h3>Qubit ${q}</h3>
       <p>Bloch vector:(${bloc.x.toFixed(3)}, ${bloc.y.toFixed(3)}, ${bloc.z.toFixed(3)})</p>
       <p>Entropy(mixedness): ${e}</p>
       <p>Purity: ${(1 + x * x + y * y + z * z) / 2}</p>
       <p>Measurement probabilities(|0>,|1>): ${reducedList[q][0][0]}, ${reducedList[q][1][1]} </p>
-    
     `;
     wrapper.appendChild(props);
 
@@ -780,9 +972,11 @@ function drawAllBloch(reducedList) {
     blochSpheresDiv.appendChild(wrapper);
 
     // Draw the Bloch sphere
-    const bloch = densityToBloch(reducedList[q]);
-    plotBloch(block.id, bloch, q);
-    `<br>`
+    const r = Math.sqrt(bloc.x*2 + bloc.y2 + bloc.z*2);
+    if(r< 1e-6){
+      plotBloch(block.id, {x:0,y:0,z:0},q,true);
+    }
+    plotBloch(block.id, bloc, q,false);
   }
 }
 
@@ -820,34 +1014,16 @@ function plotBloch(containerId, bloch, q) {
 
   // Axes (colored like in your image)
   const axes = [
-    { type: 'scatter3d', mode: 'lines', x: [-1, 1], y: [0, 0], z: [0, 0], line: { width: 3, color: 'purple' } },   // X
-    { type: 'scatter3d', mode: 'lines', x: [0, 0], y: [-1, 1], z: [0, 0], line: { width: 3, color: 'purple' } }, // Y
-    { type: 'scatter3d', mode: 'lines', x: [0, 0], y: [0, 0], z: [-1, 1], line: { width: 3, color: 'purple' } }     // Z
+    { type: 'scatter3d', mode: 'lines', x: [-1, 1], y: [0, 0], z: [0, 0], line: { width: 3, color: 'purple' } ,name:"x-axis"},   // X
+    { type: 'scatter3d', mode: 'lines', x: [0, 0], y: [-1, 1], z: [0, 0], line: { width: 3, color: 'purple' } ,name:"y-axis"}, // Y
+    { type: 'scatter3d', mode: 'lines', x: [0, 0], y: [0, 0], z: [-1, 1], line: { width: 3, color: 'purple' },name:"z-axis"}     // Z
   ];
 
   // Qubit vector
   const vx = bloch.x, vy = bloch.y, vz = bloch.z;
-  const stateVector = {
-    type: 'scatter3d',
-    mode: 'lines+markers',
-    x: [0, vx], y: [0, vy], z: [0, vz],
-    line: { width: 6, color: '#ff6969ec' },
-    marker: { size: 1, color: '#f16464f5' },
-    hoverinfo : 'x+y+z'
-  };
-
+  const r = Math.sqrt(vx*vx + vy*vy + vz*vz);
+  
   // Arrowhead
-    // Arrowhead
-  const arrowHead = {
-    type: 'cone',
-    x: [vx], y: [vy], z: [vz],
-    u: [vx], v: [vy], w: [vz],   // direction of the vector
-    sizemode: 'absolute',
-    sizeref: 0.2,
-    anchor: 'tip',               // <<< this makes the cone tip sit at (vx,vy,vz)
-    colorscale: [[0, 'red'], [1, 'red']],
-    showscale: false
-  };
 
 
   // Basis state labels
@@ -863,22 +1039,49 @@ function plotBloch(containerId, bloch, q) {
     hoverinfo: 'text'
   };
 
-  // Layout (no background grids)
+  let traces = [sphere, ...axes, labels];
+  if(r<1e-6){
+     traces.push({
+      type: 'scatter3d',
+      mode: 'markers',
+      x: [0], y: [0], z: [0],
+      marker: { size: 6, color: 'red' },
+      name: 'mixed'
+    });
+  }
+  else{
+    const stateVector = {
+      type: 'scatter3d',
+      mode: 'lines+markers',
+      x: [0, vx], y: [0, vy], z: [0, vz],
+      line: { width: 6, color: '#ff6969ec' },
+      marker: { size: 1, color: '#f16464f5' },
+      hoverinfo : 'x+y+z',
+      name: "qubit"
+    };
+    const arrowHead = {
+      type: 'cone',
+      x: [vx], y: [vy], z: [vz],
+      u: [vx], v: [vy], w: [vz],   // direction of the vector
+      sizemode: 'absolute',
+      sizeref: 0.2,
+      anchor: 'tip',               // <<< this makes the cone tip sit at (vx,vy,vz)
+      colorscale: [[0, 'red'], [1, 'red']],
+      showscale: false
+    };
+    traces.push(stateVector,arrowHead);
+
+  }
   const layout = {
-    title: `Qubit ${q}`,
+    title: Qubit ${q},
     margin: { l: 0, r: 0, b: 0, t: 30 },
     scene: {
       aspectmode: 'cube',
       xaxis: { range: [-1.3, 1.3], showgrid: false, zeroline: false, showticklabels: false, visible: false },
       yaxis: { range: [-1.3, 1.3], showgrid: false, zeroline: false, showticklabels: false, visible: false },
       zaxis: { range: [-1.3, 1.3], showgrid: false, zeroline: false, showticklabels: false, visible: false },
-      camera: {
-      eye: { x: 0.8, y: 0.8, z: 0.8 }   // smaller values => closer zoom
-    }
-      
+      camera: { eye: { x: 0.8, y: 0.8, z: 0.8 } }
     }
   };
-
-  Plotly.newPlot(containerId, [sphere, ...axes, stateVector, arrowHead, labels], layout, { displayModeBar: false });
+  Plotly.newPlot(containerId,traces,layout,{displayModeBar : false});
 }
-

@@ -632,16 +632,33 @@ function renderGateList(){
 
     const up = document.createElement('button');
     up.textContent = '↑';
-    up.onclick = ()=>{ if(i>0){ [gateSequence[i-1],gateSequence[i]]=[gateSequence[i],gateSequence[i-1]]; renderGateList(); } };
+    up.onclick = ()=>{ if(i>0){ [gateSequence[i-1],gateSequence[i]]=[gateSequence[i],gateSequence[i-1]]; 
+      renderGateList();
+      container.innerHTML = "<h2>Circuit Diagram</h2>";
+      renderCircuit(nQ,gateSequence);
+      blochSpheresDiv.innerHTML = "";
+      resultsDiv.innerHTML = "";
+      } };
 
     const down = document.createElement('button');
     down.textContent = '↓';
-    down.onclick = ()=>{ if(i<gateSequence.length-1){ [gateSequence[i+1],gateSequence[i]]=[gateSequence[i],gateSequence[i+1]]; renderGateList(); } };
+    down.onclick = ()=>{ if(i<gateSequence.length-1){ [gateSequence[i+1],gateSequence[i]]=[gateSequence[i],gateSequence[i+1]]; 
+      renderGateList();
+      container.innerHTML = "<h2>Circuit Diagram</h2>";
+      renderCircuit(nQ,gateSequence);
+      blochSpheresDiv.innerHTML = "";
+      resultsDiv.innerHTML = "";
+    } };
 
     const rm = document.createElement('button');
     rm.textContent = 'Remove';
     rm.className = 'rm';
-    rm.onclick = ()=>{ gateSequence.splice(i,1); renderGateList(); };
+    rm.onclick = ()=>{ gateSequence.splice(i,1); renderGateList();
+      container.innerHTML = "<h2>Circuit Diagram</h2>";
+      renderCircuit(nQ,gateSequence);
+      blochSpheresDiv.innerHTML = "";
+      resultsDiv.innerHTML = "";
+    };
 
     right.appendChild(up);
     right.appendChild(down);
@@ -1085,6 +1102,29 @@ function plotBloch(containerId, bloch, q) {
   };
   Plotly.newPlot(containerId,traces,layout,{displayModeBar : false});
 }
-  
+document.getElementById("cRun").addEventListener("click", async () => {
+  // Build payload from your gates list
+  const payload = {
+    numQubits: nQ,      // number of qubits from your frontend
+    gates: gateSequence // your array of gate objects
+  };
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    document.getElementById("backendResults").textContent =
+      "Backend Counts:\n" + JSON.stringify(data.counts, null, 2) +
+      "\n\nQASM:\n" + data.qasm;
+  } catch (err) {
+    console.error(err);
+    document.getElementById("backendResults").textContent = "Error: " + err;
+  }
+});
+ 
 
 

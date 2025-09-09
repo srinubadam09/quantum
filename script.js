@@ -1110,7 +1110,7 @@ document.getElementById("cRun").addEventListener("click", async () => {
   };
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/run", {
+    const res = await fetch("https://qsv-3xax.onrender.com/run", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -1126,5 +1126,6 @@ document.getElementById("cRun").addEventListener("click", async () => {
   }
 });
  
+
 
 

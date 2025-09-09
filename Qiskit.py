@@ -50,6 +50,9 @@ def build_circuit(data: CircuitRequest):
     qc.measure(range(n), range(n))
 
     return qc
+@app.get("/")
+def home():
+    return {"message": "Qiskit backend is running!"}
 
 @app.post("/run")
 def run_circuit(request: CircuitRequest):

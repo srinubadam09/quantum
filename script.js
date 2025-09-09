@@ -842,7 +842,8 @@ function onRun(){
        // Example: measure qubit 0
       const { outcome, newPsi } = measureQubit(psi, nQ, target);
       psi = newPsi;   // update state vector
-      console.log(`Measurement outcome for qubit ${target}:`, outcome);
+      const measureResult = `<div>Measurement outcome for qubit ${target}: ${outcome}</div>`;
+      resultsDiv.innerHTML += measureResult;
     }
     else if (g.type === 'Rx'){
       psi = applySingleQubitGate(psi, nQ, g.params[0], Rx(g.angle));
@@ -877,7 +878,6 @@ function onRun(){
 
 // ---------- Display & plotting ----------
 function displayResults(psi, rho, reducedList){
-  resultsDiv.innerHTML = '';
   const dim = psi.length;
   let s = "<div class='result-block'><h3>Final state amplitudes (nonzero)</h3>";
   for (let i=0;i<dim;i++){
@@ -911,7 +911,7 @@ function displayResults(psi, rho, reducedList){
     s += "</div>";
   }
 
-  resultsDiv.innerHTML = s;
+  resultsDiv.innerHTML += s;
   if(window.MathJax){
     MathJax.typesetPromise();
   }
@@ -1126,6 +1126,7 @@ document.getElementById("cRun").addEventListener("click", async () => {
   }
 });
  
+
 
 
 
